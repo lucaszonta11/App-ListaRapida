@@ -31,6 +31,9 @@
     "plugins": [
       "expo-router"
     ],
-    "scheme": "lista-rapida"
+    "scheme": "lista-rapida",
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

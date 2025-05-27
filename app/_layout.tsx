@@ -1,22 +1,49 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { LogBox, StatusBar } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Layout() {
+  useEffect(() => {
+    LogBox.ignoreLogs(['Warning: ...']); // Ignorar warnings específicos se necessário
+  }, []);
+
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#f4511e',
+            backgroundColor: '#fff',
           },
-          headerTintColor: '#fff',
+          headerTintColor: '#f4511e',
           headerTitleStyle: {
             fontWeight: 'bold',
           },
         }}
-      />
+      >
+        <Stack.Screen
+          name="index"
+          options={{
+            title: 'Lista Rápida',
+            headerRight: () => (
+              <Ionicons 
+                name="add-circle-outline" 
+                size={24} 
+                color="#f4511e" 
+                style={{ marginRight: 16 }}
+              />
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="add"
+          options={{
+            title: 'Nova Tarefa',
+            presentation: 'modal',
+          }}
+        />
+      </Stack>
     </>
   );
 } 
