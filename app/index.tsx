@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Alert, Platform } from 'react-native';
 import { useTarefasFirebase } from '../hooks/useTarefasFirebase';
 import { Button } from '../components/Button';
 import { Tarefa } from '../types/Tarefa';
@@ -48,26 +48,27 @@ export default function Home() {
   };
 
   const handleExcluir = async (id: string) => {
-    Alert.alert(
-      'Confirmar exclusão',
-      'Tem certeza que deseja excluir esta tarefa?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Excluir', 
-          style: 'destructive',
-          onPress: async () => {
-            const sucesso = await excluirTarefa(id);
-            if (sucesso) {
-              showMessage({
-                message: 'Tarefa excluída com sucesso!',
-                type: 'success'
-              });
+    if (Platform.OS === 'web') {
+      const confirmar = window.confirm('Tem certeza que deseja excluir esta tarefa?');
+      if (confirmar) {
+        await excluirTarefa(id);
+      }
+    } else {
+      Alert.alert(
+        'Confirmar exclusão',
+        'Tem certeza que deseja excluir esta tarefa?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Excluir',
+            style: 'destructive',
+            onPress: async () => {
+              await excluirTarefa(id);
             }
           }
-        }
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const renderItem = ({ item }: { item: Tarefa }) => (
@@ -80,7 +81,7 @@ export default function Home() {
           {item.titulo}
         </Text>
         <Text style={styles.tarefaData}>
-          {new Date(item.criadaEm).toLocaleDateString()}
+          {new Date(item.criadaEm).toLocaleDateString()} {new Date(item.criadaEm).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </View>
       <View style={styles.tarefaAcoes}>
