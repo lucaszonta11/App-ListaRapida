@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "app-lista-rapida"
+  },
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}

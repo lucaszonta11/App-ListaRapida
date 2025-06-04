@@ -8,6 +8,8 @@ export default function Layout() {
     LogBox.ignoreLogs(['Warning: ...']); // Ignorar warnings específicos se necessário
   }, []);
 
+  console.log('setLoading(false) chamado');
+
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />

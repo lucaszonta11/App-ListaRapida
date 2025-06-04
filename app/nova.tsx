@@ -1,21 +1,23 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
 import { useState } from 'react'
 import { router } from 'expo-router'
-import { useTarefas } from '../hooks/useTarefas'
+import { useTarefasFirebase } from '../hooks/useTarefasFirebase'
 import { Ionicons } from '@expo/vector-icons'
 import { Tarefa } from '../types/Tarefa'
 
 export default function Nova() {
   const [titulo, setTitulo] = useState('')
   const [categoria, setCategoria] = useState<Tarefa['categoria']>('pessoal')
-  const { adicionarTarefa } = useTarefas()
+  const { adicionarTarefa } = useTarefasFirebase()
 
   const categorias: Tarefa['categoria'][] = ['pessoal', 'trabalho', 'estudo']
 
-  function salvar() {
+  async function salvar() {
     if (!titulo.trim()) return
-    adicionarTarefa(titulo, categoria)
-    router.replace('./')
+    const sucesso = await adicionarTarefa(titulo, categoria)
+    if (sucesso) {
+      router.replace('./')
+    }
   }
 
   return (
