@@ -10,23 +10,34 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#f4511e"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.listarapida.app",
+      "buildNumber": "1.0.0",
+      "icon": "./assets/ios-icon.png"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#f4511e"
       },
+      "package": "com.listarapida.app",
+      "versionCode": 1,
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Lista Rápida",
+      "shortName": "Lista Rápida",
+      "lang": "pt-BR",
+      "description": "Um aplicativo simples e eficiente para gerenciar suas tarefas diárias",
+      "themeColor": "#f4511e",
+      "backgroundColor": "#ffffff"
     },
     "plugins": [
       "expo-router"
@@ -34,6 +45,16 @@
     "scheme": "lista-rapida",
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    },
+    "owner": "your-expo-username",
+    "description": "Um aplicativo simples e eficiente para gerenciar suas tarefas diárias",
+    "githubUrl": "https://github.com/your-username/lista-rapida",
+    "privacy": "public",
+    "primaryColor": "#f4511e"
   }
 }
