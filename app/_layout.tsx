@@ -1,51 +1,56 @@
-import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { LogBox, StatusBar } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect } from "react";
+import { Stack } from "expo-router";
+import { LogBox, StatusBar } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
+import { theme } from "./theme"; //
 
 export default function Layout() {
   useEffect(() => {
-    LogBox.ignoreLogs(['Warning: ...']); // Ignorar warnings específicos se necessário
+    LogBox.ignoreLogs(["Warning: ..."]);
   }, []);
-
-  console.log('setLoading(false) chamado');
 
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+
+      {/* Navegação com stack e telas definidas */}
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#fff',
+            backgroundColor: "#fff",
           },
-          headerTintColor: '#f4511e',
+          headerTintColor: theme.colors.primary,
           headerTitleStyle: {
-            fontWeight: 'bold',
+            fontWeight: "bold",
           },
         }}
       >
+        {/* Tela inicial */}
         <Stack.Screen
           name="index"
           options={{
-            title: 'Lista Rápida',
+            title: "Lista Rápida",
             headerRight: () => (
-              <Ionicons 
-                name="add-circle-outline" 
-                size={24} 
-                color="#f4511e" 
+              <Ionicons
+                name="add-circle-outline"
+                size={24}
+                color={theme.colors.primary}
                 style={{ marginRight: 16 }}
               />
             ),
           }}
         />
+
+        {/* Tela de adicionar tarefa como modal */}
         <Stack.Screen
           name="add"
           options={{
-            title: 'Nova Tarefa',
-            presentation: 'modal',
+            title: "Nova Tarefa",
+            presentation: "modal", // Abre como modal
           }}
         />
       </Stack>
     </>
   );
-} 
+}

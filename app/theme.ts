@@ -6,18 +6,25 @@ export const theme = {
     warning: '#FFA000',
     error: '#f44336',
     background: {
-      primary: '#f7f7f7',
+      primary: '#f8f9fa',
       secondary: '#ffffff',
-      tertiary: '#f0f0f0'
+      tertiary: '#f1f3f5'
     },
     text: {
-      primary: '#333333',
-      secondary: '#666666',
-      disabled: '#888888',
+      primary: '#212529',
+      secondary: '#495057',
+      disabled: '#adb5bd',
       inverse: '#ffffff'
     },
-    border: '#e0e0e0',
-    overlay: 'rgba(0, 0, 0, 0.5)'
+    border: '#dee2e6',
+    overlay: 'rgba(0, 0, 0, 0.5)',
+    // Cores específicas para categorias
+    category: {
+      pessoal: '#4CAF50',
+      trabalho: '#2196F3',
+      estudo: '#9C27B0',
+      todos: '#6c757d'
+    }
   },
   spacing: {
     xs: 4,
@@ -39,21 +46,21 @@ export const theme = {
     small: {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
+      shadowOpacity: 0.08,
       shadowRadius: 2,
       elevation: 2
     },
     medium: {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
+      shadowOpacity: 0.12,
       shadowRadius: 4,
       elevation: 4
     },
     large: {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
+      shadowOpacity: 0.16,
       shadowRadius: 8,
       elevation: 8
     }
@@ -61,35 +68,43 @@ export const theme = {
   typography: {
     h1: {
       fontSize: 32,
-      fontWeight: 'bold',
-      lineHeight: 40
+      fontWeight: '700',
+      lineHeight: 40,
+      letterSpacing: -0.5
     },
     h2: {
       fontSize: 24,
-      fontWeight: 'bold',
-      lineHeight: 32
+      fontWeight: '700',
+      lineHeight: 32,
+      letterSpacing: -0.25
     },
     h3: {
       fontSize: 20,
       fontWeight: '600',
-      lineHeight: 28
+      lineHeight: 28,
+      letterSpacing: 0
     },
     body: {
       fontSize: 16,
-      lineHeight: 24
+      lineHeight: 24,
+      letterSpacing: 0.15
     },
     bodySmall: {
       fontSize: 14,
-      lineHeight: 20
+      lineHeight: 20,
+      letterSpacing: 0.25
     },
     caption: {
       fontSize: 12,
-      lineHeight: 16
+      lineHeight: 16,
+      letterSpacing: 0.4
     },
     button: {
       fontSize: 16,
       fontWeight: '600',
-      lineHeight: 24
+      lineHeight: 24,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase'
     }
   },
   animation: {
@@ -106,18 +121,26 @@ export const theme = {
   }
 } as const;
 
-// Ícones para cada categoria
-export const categoriaIcons = {
-  pessoal: 'person-outline',
-  trabalho: 'briefcase-outline',
-  estudo: 'book-outline',
-  todos: 'apps-outline'
-} as const;
-
-// Cores para cada categoria
-export const categoriaColors = {
-  pessoal: '#4CAF50',
-  trabalho: '#2196F3',
-  estudo: '#9C27B0',
-  todos: '#666666'
+// Ícones para cada categoria com cores correspondentes
+export const categoriaConfig = {
+  pessoal: {
+    icon: 'person-outline',
+    color: theme.colors.category.pessoal,
+    backgroundColor: `${theme.colors.category.pessoal}15`
+  },
+  trabalho: {
+    icon: 'briefcase-outline',
+    color: theme.colors.category.trabalho,
+    backgroundColor: `${theme.colors.category.trabalho}15`
+  },
+  estudo: {
+    icon: 'book-outline',
+    color: theme.colors.category.estudo,
+    backgroundColor: `${theme.colors.category.estudo}15`
+  },
+  todos: {
+    icon: 'apps-outline',
+    color: theme.colors.category.todos,
+    backgroundColor: `${theme.colors.category.todos}15`
+  }
 } as const; 

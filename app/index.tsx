@@ -5,6 +5,9 @@ import { Button } from '../components/Button';
 import { Tarefa } from '../types/Tarefa';
 import { useRouter } from 'expo-router';
 import { showMessage } from 'react-native-flash-message';
+import { theme, categoriaConfig } from './theme';
+import { TarefaItem } from '../components/TarefaItem';
+import { Ionicons } from '@expo/vector-icons';
 
 type TarefaSecao = {
   title: string;
@@ -36,14 +39,15 @@ export default function Home() {
   }, {} as Record<Tarefa['categoria'], Tarefa[]>);
 
   // Criar seções para a FlatList
-  const secoes: TarefaSecao[] = Object.entries(tarefasPorCategoria).map(([categoria, tarefas]) => ({
-    title: categoria.charAt(0).toUpperCase() + categoria.slice(1),
-    data: tarefas
-  }));
+  const secoes: TarefaSecao[] = Object.entries(tarefasPorCategoria)
+    .filter(([categoria]) => categoriaFiltro === 'todos' || categoria === categoriaFiltro)
+    .map(([categoria, tarefas]) => ({
+      title: categoria.charAt(0).toUpperCase() + categoria.slice(1),
+      data: tarefas
+    }));
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // O Firebase já atualiza automaticamente, mas podemos adicionar lógica adicional aqui
     setTimeout(() => setRefreshing(false), 1000);
   };
 
@@ -52,6 +56,10 @@ export default function Home() {
       const confirmar = window.confirm('Tem certeza que deseja excluir esta tarefa?');
       if (confirmar) {
         await excluirTarefa(id);
+        showMessage({
+          message: 'Tarefa excluída com sucesso!',
+          type: 'success',
+        });
       }
     } else {
       Alert.alert(
@@ -64,6 +72,10 @@ export default function Home() {
             style: 'destructive',
             onPress: async () => {
               await excluirTarefa(id);
+              showMessage({
+                message: 'Tarefa excluída com sucesso!',
+                type: 'success',
+              });
             }
           }
         ]
@@ -72,62 +84,46 @@ export default function Home() {
   };
 
   const renderItem = ({ item }: { item: Tarefa }) => (
-    <View style={styles.tarefaItem}>
-      <View style={styles.tarefaInfo}>
-        <Text style={[
-          styles.tarefaTitulo,
-          item.concluida && styles.tarefaConcluida
-        ]}>
-          {item.titulo}
-        </Text>
-        <Text style={styles.tarefaData}>
-          {new Date(item.criadaEm).toLocaleDateString()} {new Date(item.criadaEm).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Text>
-      </View>
-      <View style={styles.tarefaAcoes}>
-        <Button
-          title={item.concluida ? '✓' : '○'}
-          onPress={() => concluirTarefa(item.id)}
-          style={item.concluida ? styles.botaoConcluido : styles.botaoPendente}
-        />
-        <Button
-          title="Detalhes"
-          onPress={() => router.push({
-            pathname: '/tarefa/[id]',
-            params: { id: item.id }
-          })}
-          style={styles.botaoDetalhes}
-        />
-        <Button
-          title="×"
-          onPress={() => handleExcluir(item.id)}
-          style={styles.botaoExcluir}
-        />
-      </View>
-    </View>
+    <TarefaItem
+      tarefa={item}
+      onToggleComplete={concluirTarefa}
+      onDelete={handleExcluir}
+      onPress={() => router.push({
+        pathname: '/tarefa/[id]',
+        params: { id: item.id }
+      })}
+    />
   );
 
-  const renderSectionHeader = ({ section }: { section: TarefaSecao }) => (
-    <View style={styles.secaoHeader}>
-      <Text style={styles.secaoTitulo}>{section.title}</Text>
-    </View>
-  );
+  const renderSectionHeader = ({ section }: { section: TarefaSecao }) => {
+    const categoria = categoriaConfig[section.title.toLowerCase() as keyof typeof categoriaConfig];
+    return (
+      <View style={[styles.secaoHeader, { backgroundColor: categoria.backgroundColor }]}>
+        <Ionicons name={categoria.icon as any} size={20} color={categoria.color} />
+        <Text style={[styles.secaoTitulo, { color: categoria.color }]}>
+          {section.title}
+        </Text>
+      </View>
+    );
+  };
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
         <Text style={styles.errorText}>{error}</Text>
         <Button 
           title="Tentar novamente" 
           onPress={() => window.location.reload()} 
+          style={styles.errorButton}
         />
       </View>
     );
@@ -138,30 +134,22 @@ export default function Home() {
       <View style={styles.header}>
         <Text style={styles.titulo}>Lista Rápida</Text>
         <View style={styles.filtros}>
-          <Button
-            title="Todos"
-            onPress={() => setCategoriaFiltro('todos')}
-            style={{ ...styles.botaoFiltro, ...(categoriaFiltro === 'todos' ? styles.botaoFiltroAtivo : {}) }}
-            textStyle={categoriaFiltro === 'todos' ? styles.filtroTextoAtivo : styles.filtroTexto}
-          />
-          <Button
-            title="Pessoal"
-            onPress={() => setCategoriaFiltro('pessoal')}
-            style={{ ...styles.botaoFiltro, ...(categoriaFiltro === 'pessoal' ? styles.botaoFiltroAtivo : {}) }}
-            textStyle={categoriaFiltro === 'pessoal' ? styles.filtroTextoAtivo : styles.filtroTexto}
-          />
-          <Button
-            title="Trabalho"
-            onPress={() => setCategoriaFiltro('trabalho')}
-            style={{ ...styles.botaoFiltro, ...(categoriaFiltro === 'trabalho' ? styles.botaoFiltroAtivo : {}) }}
-            textStyle={categoriaFiltro === 'trabalho' ? styles.filtroTextoAtivo : styles.filtroTexto}
-          />
-          <Button
-            title="Estudo"
-            onPress={() => setCategoriaFiltro('estudo')}
-            style={{ ...styles.botaoFiltro, ...(categoriaFiltro === 'estudo' ? styles.botaoFiltroAtivo : {}) }}
-            textStyle={categoriaFiltro === 'estudo' ? styles.filtroTextoAtivo : styles.filtroTexto}
-          />
+          {Object.entries(categoriaConfig).map(([key, config]: [string, typeof categoriaConfig[string]]) => (
+            <Button
+              key={key}
+              title={key.charAt(0).toUpperCase() + key.slice(1)}
+              onPress={() => setCategoriaFiltro(key as Tarefa['categoria'])}
+              style={{
+                ...styles.botaoFiltro,
+                ...(categoriaFiltro === key ? { backgroundColor: config.color } : {})
+              }}
+              textStyle={{
+                ...styles.filtroTexto,
+                ...(categoriaFiltro === key ? styles.filtroTextoAtivo : {})
+              }}
+              icon={config.icon as keyof typeof Ionicons.glyphMap}
+            />
+          ))}
         </View>
       </View>
 
@@ -173,6 +161,7 @@ export default function Home() {
             renderItem={renderItem}
             keyExtractor={tarefa => tarefa.id}
             ListHeaderComponent={() => renderSectionHeader({ section: item })}
+            contentContainerStyle={styles.listaContainer}
           />
         )}
         keyExtractor={section => section.title}
@@ -180,12 +169,18 @@ export default function Home() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <Ionicons name="list-outline" size={48} color={theme.colors.text.disabled} />
             <Text style={styles.emptyText}>
               Nenhuma tarefa encontrada
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Toque no botão + para adicionar uma nova tarefa
             </Text>
           </View>
         }
@@ -195,6 +190,7 @@ export default function Home() {
         title="Nova Tarefa"
         onPress={() => router.push('/nova-tarefa')}
         style={styles.botaoNovaTarefa}
+        icon="add-circle-outline"
       />
     </View>
   );
@@ -203,140 +199,107 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
-    padding: 16,
+    backgroundColor: theme.colors.background.primary,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background.primary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background.primary,
+    padding: theme.spacing.lg,
   },
   header: {
-    marginBottom: 16,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.background.secondary,
+    ...theme.shadows.small,
   },
   titulo: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 24,
+    ...theme.typography.h1,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.lg,
     textAlign: 'center',
-    color: '#222',
   },
   filtros: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 24,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   botaoFiltro: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 14,
-    borderRadius: 20,
+    backgroundColor: theme.colors.background.tertiary,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.round,
     alignItems: 'center',
-    marginHorizontal: 4,
+    marginHorizontal: theme.spacing.xs,
     minWidth: 100,
-    transitionProperty: 'background-color',
-    transitionDuration: '0.2s',
-  },
-  botaoFiltroAtivo: {
-    backgroundColor: '#f4511e',
   },
   filtroTexto: {
-    color: '#888',
-    fontWeight: 'bold',
+    ...theme.typography.button,
+    color: theme.colors.text.secondary,
   },
   filtroTextoAtivo: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: theme.colors.text.inverse,
+  },
+  listaContainer: {
+    padding: theme.spacing.md,
   },
   secaoHeader: {
-    backgroundColor: '#f8f8f8',
-    padding: 8,
-    marginVertical: 8,
-    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.sm,
+    marginVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    gap: theme.spacing.sm,
   },
   secaoTitulo: {
-    fontSize: 16,
+    ...theme.typography.h3,
     fontWeight: '600',
-    color: '#666',
-  },
-  tarefaItem: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  tarefaInfo: {
-    flex: 1,
-  },
-  tarefaTitulo: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  tarefaConcluida: {
-    textDecorationLine: 'line-through',
-    color: '#888',
-  },
-  tarefaData: {
-    fontSize: 12,
-    color: '#888',
-  },
-  tarefaAcoes: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  botaoConcluido: {
-    backgroundColor: '#4CAF50',
-    padding: 8,
-    minWidth: 40,
-    borderRadius: 8,
-  },
-  botaoPendente: {
-    backgroundColor: '#FFA000',
-    padding: 8,
-    minWidth: 40,
-    borderRadius: 8,
-  },
-  botaoExcluir: {
-    backgroundColor: '#f44336',
-    padding: 8,
-    minWidth: 40,
-    borderRadius: 8,
-  },
-  botaoDetalhes: {
-    backgroundColor: '#2196F3',
-    padding: 8,
-    borderRadius: 8,
-  },
-  botaoNovaTarefa: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    left: 24,
-    backgroundColor: '#4CAF50',
-    borderRadius: 30,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
   },
   emptyContainer: {
-    padding: 32,
+    padding: theme.spacing.xl,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.md,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#888',
+    ...theme.typography.h3,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    ...theme.typography.body,
+    color: theme.colors.text.disabled,
     textAlign: 'center',
   },
   errorText: {
-    color: '#f44336',
-    fontSize: 16,
+    ...theme.typography.body,
+    color: theme.colors.error,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
+  },
+  errorButton: {
+    backgroundColor: theme.colors.error,
+  },
+  botaoNovaTarefa: {
+    position: 'absolute',
+    bottom: theme.spacing.lg,
+    right: theme.spacing.lg,
+    left: theme.spacing.lg,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.round,
+    paddingVertical: theme.spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    ...theme.shadows.medium,
   },
 }); 

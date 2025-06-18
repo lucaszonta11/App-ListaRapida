@@ -1,51 +1,77 @@
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native'
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../app/theme';
 
-interface ButtonProps {
-  title: string
-  onPress: () => void
-  style?: ViewStyle
-  textStyle?: TextStyle
-  disabled?: boolean
+export interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+  disabled?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
 }
 
 export function Button({ 
   title, 
   onPress, 
   style, 
-  textStyle,
-  disabled = false 
+  textStyle, 
+  disabled,
+  icon
 }: ButtonProps) {
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        style,
-        disabled && styles.disabled
+        disabled && styles.buttonDisabled,
+        style
       ]}
       onPress={onPress}
       disabled={disabled}
+      activeOpacity={0.7}
     >
-      <Text style={[styles.text, textStyle]}>
+      {icon && (
+        <Ionicons 
+          name={icon} 
+          size={20} 
+          color={theme.colors.text.inverse} 
+          style={styles.icon}
+        />
+      )}
+      <Text style={[
+        styles.text,
+        disabled && styles.textDisabled,
+        textStyle
+      ]}>
         {title}
       </Text>
     </TouchableOpacity>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  buttonDisabled: {
+    backgroundColor: theme.colors.text.disabled,
   },
   text: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600'
+    ...theme.typography.button,
+    color: theme.colors.text.inverse,
   },
-  disabled: {
-    opacity: 0.5
-  }
-}) 
+  textDisabled: {
+    color: theme.colors.text.inverse,
+    opacity: 0.7,
+  },
+  icon: {
+    marginRight: theme.spacing.xs,
+  },
+}); 

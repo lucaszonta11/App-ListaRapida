@@ -1,185 +1,124 @@
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Animated } from 'react-native'
-import { Tarefa } from '../types/Tarefa'
-import { Ionicons } from '@expo/vector-icons'
-import { theme, categoriaIcons, categoriaColors } from '../app/theme'
-import { useEffect, useRef } from 'react'
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { theme, categoriaConfig } from '../app/theme';
+import { Tarefa } from '../types/Tarefa';
 
-type Props = {
-  tarefa: Tarefa
-  aoConcluir: () => void
-  aoExcluir: () => void
+interface TarefaItemProps {
+  tarefa: Tarefa;
+  onToggleComplete: (id: string) => void;
+  onDelete: (id: string) => void;
+  onPress: () => void;
 }
 
-export default function TarefaItem({ tarefa, aoConcluir, aoExcluir }: Props) {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.98,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4
-    }).start();
-  };
-
-  const handleDelete = () => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 0.8,
-        duration: theme.animation.duration.fast,
-        useNativeDriver: true
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: theme.animation.duration.fast,
-        useNativeDriver: true
-      })
-    ]).start(() => {
-      aoExcluir();
-    });
-  };
+export function TarefaItem({ tarefa, onToggleComplete, onDelete, onPress }: TarefaItemProps) {
+  const categoria = categoriaConfig[tarefa.categoria];
+  const dataFormatada = new Date(tarefa.criadaEm).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 
   return (
-    <Animated.View 
-      style={[
-        styles.container,
-        {
-          transform: [{ scale: scaleAnim }],
-          opacity: opacityAnim
-        }
-      ]}
+    <TouchableOpacity 
+      style={[styles.container, { backgroundColor: categoria.backgroundColor }]}
+      onPress={onPress}
+      activeOpacity={0.7}
     >
-      <Pressable 
-        style={styles.content}
-        onPress={aoConcluir}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <View style={[
-          styles.checkbox,
-          tarefa.concluida && styles.checkboxCompleted,
-          { borderColor: categoriaColors[tarefa.categoria] }
-        ]}>
+      <View style={styles.content}>
+        <TouchableOpacity
+          style={[styles.checkbox, tarefa.concluida && styles.checkboxChecked]}
+          onPress={() => onToggleComplete(tarefa.id)}
+        >
           {tarefa.concluida && (
-            <Ionicons 
-              name="checkmark" 
-              size={16} 
-              color={theme.colors.text.inverse} 
-            />
+            <Ionicons name="checkmark" size={16} color={theme.colors.text.inverse} />
           )}
-        </View>
-        <View style={styles.textContainer}>
+        </TouchableOpacity>
+
+        <View style={styles.info}>
           <Text style={[
-            styles.titulo,
-            tarefa.concluida && styles.tituloConcluido
+            styles.title,
+            tarefa.concluida && styles.titleChecked
           ]}>
             {tarefa.titulo}
           </Text>
-          <View style={styles.metaInfo}>
-            <View style={[
-              styles.categoria,
-              { backgroundColor: categoriaColors[tarefa.categoria] }
-            ]}>
+          
+          <View style={styles.meta}>
+            <View style={styles.categoria}>
               <Ionicons 
-                name={categoriaIcons[tarefa.categoria]} 
-                size={12} 
-                color={theme.colors.text.inverse} 
-                style={styles.categoriaIcon}
+                name={categoria.icon as any} 
+                size={14} 
+                color={categoria.color} 
               />
-              <Text style={styles.categoriaText}>
+              <Text style={[styles.categoriaText, { color: categoria.color }]}>
                 {tarefa.categoria.charAt(0).toUpperCase() + tarefa.categoria.slice(1)}
               </Text>
             </View>
-            <Text style={styles.data}>
-              {new Date(tarefa.criadaEm).toLocaleDateString()} {new Date(tarefa.criadaEm).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
+            
+            <Text style={styles.data}>{dataFormatada}</Text>
           </View>
         </View>
-      </Pressable>
-      <Pressable 
-        style={({ pressed }) => [
-          styles.deleteButton,
-          pressed && styles.deleteButtonPressed
-        ]}
-        onPress={handleDelete}
-      >
-        <Ionicons 
-          name="trash-outline" 
-          size={24} 
-          color={theme.colors.error} 
-        />
-      </Pressable>
-    </Animated.View>
-  )
+
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => onDelete(tarefa.id)}
+        >
+          <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background.secondary,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.lg,
     marginBottom: theme.spacing.sm,
-    ...theme.shadows.medium
+    ...theme.shadows.small,
   },
   content: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    padding: theme.spacing.md,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: theme.borderRadius.round,
     borderWidth: 2,
+    borderColor: theme.colors.primary,
     marginRight: theme.spacing.md,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  checkboxCompleted: {
+  checkboxChecked: {
     backgroundColor: theme.colors.primary,
   },
-  textContainer: {
+  info: {
     flex: 1,
   },
-  titulo: {
+  title: {
     ...theme.typography.body,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.xs,
   },
-  tituloConcluido: {
+  titleChecked: {
     textDecorationLine: 'line-through',
     color: theme.colors.text.disabled,
   },
-  metaInfo: {
+  meta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    justifyContent: 'space-between',
   },
   categoria: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.xs,
-  },
-  categoriaIcon: {
-    marginRight: theme.spacing.xs,
+    gap: theme.spacing.xs,
   },
   categoriaText: {
     ...theme.typography.caption,
-    color: theme.colors.text.inverse,
     fontWeight: '500',
   },
   data: {
@@ -187,11 +126,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   deleteButton: {
-    padding: theme.spacing.sm,
-    borderRadius: theme.borderRadius.sm,
+    padding: theme.spacing.xs,
     marginLeft: theme.spacing.sm,
-  },
-  deleteButtonPressed: {
-    backgroundColor: theme.colors.background.tertiary,
   },
 }); 

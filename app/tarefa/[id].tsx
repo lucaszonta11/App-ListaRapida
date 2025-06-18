@@ -1,9 +1,11 @@
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTarefasFirebase } from '../../hooks/useTarefasFirebase'
 import { Button } from '../../components/Button'
 import { useEffect, useState } from 'react'
 import { Tarefa } from '../../types/Tarefa'
+import { theme, categoriaConfig } from '../theme'
+import { Ionicons } from '@expo/vector-icons'
 
 export default function DetalhesTarefa() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -20,25 +22,37 @@ export default function DetalhesTarefa() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     )
   }
 
   if (error || !tarefa) {
     return (
-      <View style={styles.container}>
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
         <Text style={styles.errorText}>
           {error || 'Tarefa não encontrada'}
         </Text>
         <Button 
           title="Voltar" 
           onPress={() => router.back()} 
+          style={styles.errorButton}
+          icon="arrow-back-outline"
         />
       </View>
     )
   }
+
+  const categoria = categoriaConfig[tarefa.categoria]
+  const dataFormatada = new Date(tarefa.criadaEm).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 
   const handleExcluir = async () => {
     Alert.alert(
@@ -69,35 +83,69 @@ export default function DetalhesTarefa() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.titulo}>{tarefa.titulo}</Text>
-        <Text style={styles.categoria}>Categoria: {tarefa.categoria}</Text>
-        <Text style={styles.data}>
-          Criada em: {new Date(tarefa.criadaEm).toLocaleDateString()}
-        </Text>
-        <Text style={[
-          styles.status,
-          tarefa.concluida ? styles.concluida : styles.pendente
-        ]}>
-          {tarefa.concluida ? 'Concluída' : 'Pendente'}
-        </Text>
+      <View style={[styles.header, { backgroundColor: categoria.backgroundColor }]}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color={categoria.color} />
+        </TouchableOpacity>
+        
+        <View style={styles.headerContent}>
+          <View style={styles.categoriaHeader}>
+            <Ionicons name={categoria.icon as any} size={24} color={categoria.color} />
+            <Text style={[styles.categoriaText, { color: categoria.color }]}>
+              {tarefa.categoria.charAt(0).toUpperCase() + tarefa.categoria.slice(1)}
+            </Text>
+          </View>
+          
+          <Text style={styles.titulo}>{tarefa.titulo}</Text>
+          
+          <View style={styles.metaInfo}>
+            <View style={styles.metaItem}>
+              <Ionicons name="time-outline" size={16} color={theme.colors.text.secondary} />
+              <Text style={styles.metaText}>{dataFormatada}</Text>
+            </View>
+            
+            <View style={[
+              styles.statusBadge,
+              { backgroundColor: tarefa.concluida ? theme.colors.success + '15' : theme.colors.warning + '15' }
+            ]}>
+              <Ionicons 
+                name={tarefa.concluida ? 'checkmark-circle' : 'time'} 
+                size={16} 
+                color={tarefa.concluida ? theme.colors.success : theme.colors.warning} 
+              />
+              <Text style={[
+                styles.statusText,
+                { color: tarefa.concluida ? theme.colors.success : theme.colors.warning }
+              ]}>
+                {tarefa.concluida ? 'Concluída' : 'Pendente'}
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
 
-      <View style={styles.acoes}>
-        <Button 
-          title={tarefa.concluida ? 'Marcar como Pendente' : 'Marcar como Concluída'}
-          onPress={handleConcluir}
-        />
-        <Button 
-          title="Excluir Tarefa"
-          onPress={handleExcluir}
-          style={styles.botaoExcluir}
-        />
-        <Button 
-          title="Voltar"
-          onPress={() => router.back()}
-          style={styles.botaoVoltar}
-        />
+      <View style={styles.content}>
+        <View style={styles.acoes}>
+          <Button 
+            title={tarefa.concluida ? 'Marcar como Pendente' : 'Marcar como Concluída'}
+            onPress={handleConcluir}
+            style={{
+              ...styles.botaoAcao,
+              backgroundColor: tarefa.concluida ? theme.colors.warning : theme.colors.success
+            }}
+            icon={tarefa.concluida ? 'time-outline' : 'checkmark-outline'}
+          />
+          
+          <Button 
+            title="Excluir Tarefa"
+            onPress={handleExcluir}
+            style={styles.botaoExcluir}
+            icon="trash-outline"
+          />
+        </View>
       </View>
     </View>
   )
@@ -106,55 +154,102 @@ export default function DetalhesTarefa() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff'
+    backgroundColor: theme.colors.background.primary,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background.primary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background.primary,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
   header: {
-    marginBottom: 24
+    padding: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
+    borderBottomLeftRadius: theme.borderRadius.xl,
+    borderBottomRightRadius: theme.borderRadius.xl,
+    ...theme.shadows.medium,
+  },
+  backButton: {
+    position: 'absolute',
+    top: theme.spacing.lg,
+    left: theme.spacing.lg,
+    zIndex: 1,
+    padding: theme.spacing.xs,
+  },
+  headerContent: {
+    marginTop: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+  categoriaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  categoriaText: {
+    ...theme.typography.bodySmall,
+    fontWeight: '600',
   },
   titulo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8
+    ...theme.typography.h1,
+    color: theme.colors.text.primary,
   },
-  categoria: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 4
+  metaInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: theme.spacing.sm,
   },
-  data: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 8
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
   },
-  status: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    padding: 8,
-    borderRadius: 4,
-    textAlign: 'center'
+  metaText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.text.secondary,
   },
-  concluida: {
-    backgroundColor: '#e6ffe6',
-    color: '#008000'
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.round,
   },
-  pendente: {
-    backgroundColor: '#fff3e6',
-    color: '#ff8c00'
+  statusText: {
+    ...theme.typography.caption,
+    fontWeight: '600',
+  },
+  content: {
+    flex: 1,
+    padding: theme.spacing.lg,
   },
   acoes: {
-    gap: 12
+    gap: theme.spacing.md,
+  },
+  botaoAcao: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
   },
   botaoExcluir: {
-    backgroundColor: '#ff4444'
-  },
-  botaoVoltar: {
-    backgroundColor: '#666'
+    backgroundColor: theme.colors.error,
   },
   errorText: {
-    color: '#ff0000',
-    fontSize: 16,
+    ...theme.typography.body,
+    color: theme.colors.error,
     textAlign: 'center',
-    marginBottom: 16
-  }
+  },
+  errorButton: {
+    backgroundColor: theme.colors.error,
+  },
 }) 

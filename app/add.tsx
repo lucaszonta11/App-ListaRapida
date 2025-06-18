@@ -41,7 +41,7 @@ export default function AddTask() {
           onPress={handleAddTask}
           disabled={!taskTitle.trim()}
         >
-          <Ionicons name="add-circle-outline" size={24} color={theme.colors.white} style={styles.buttonIcon} />
+          <Ionicons name="add-circle-outline" size={24} color={theme.colors.text.primary} style={styles.buttonIcon} />
           <Text style={styles.buttonText}>Adicionar Tarefa</Text>
         </TouchableOpacity>
 
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.white,
+    backgroundColor: theme.colors.background.secondary,
     borderRadius: theme.borderRadius.lg,
     paddingHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.lg,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     marginRight: theme.spacing.sm,
   },
   buttonText: {
-    color: theme.colors.white,
+    color: theme.colors.text.primary,
     fontSize: theme.typography.body.fontSize,
     fontWeight: 'bold',
   },
